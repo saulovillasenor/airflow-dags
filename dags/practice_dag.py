@@ -1,39 +1,15 @@
-#Steps for creating a DAG in Airflow
-
-#Step 1. Import the modules
-from datetime import timedelta
+from datetime import datetime
 from airflow import DAG
-from airflow.providers.google.cloud.operators.gcs import GCSListObjectsOperator
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
 
-#Step 2. Set the default arguments
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2022, 7, 6),
-    'retries': 1,
-    'retry_delay': timedelta(minutes=1)
-}
+def print_hello():
+    return 'Hello world from your first Airflow DAG!'
 
-#Step 3. Instantiate a DAG
-dag = DAG(
-    'gcs_dag',
-    default_args=default_args,
-    description='DAG to check the files in GCS',
-    schedule_interval=timedelta(days=1),
-)
+dag = DAG('hello_world', description='Hello World DAG',
+          schedule_interval='0 12 * * *',
+          start_date=datetime(2017, 3, 20), catchup=False)
 
-#Step 4. Tasks creation
-gcs_files = GCSListObjectsOperator(
-                task_id='gcs_files',
-                bucket='data',
-                delimiter='.csv',
-                gcp_conn_id=google_cloud_conn_id,
-                dag=dag
-            )
+hello_operator = PythonOperator(task_id='hello_task', python_callable=print_hello, dag=dag)
 
-gcs_files
-
-#Step 5. Set up the dependencies
-#In this case we have no depencies since our DAG only has 1 task, but an example of this would be:
-#task1 >> task2 >> [task3, task4, task5] >> task6
-#where the task within thw list would run in parallel  
+hello_operator
