@@ -115,7 +115,7 @@ with DAG(
     validate_data = BranchSQLOperator(
         task_id="validate_data",
         conn_id=POSTGRES_CONN_ID,
-        sql=f"SELECT COUNT(*) AS total_rows FROM {POSTGRES_TABLE_NAME}",
+        sql=f"SELECT COUNT(*) AS total_rows FROM user_purchase",
         follow_task_ids_if_false=[continue_process.task_id],
         follow_task_ids_if_true=[clear_table.task_id],
     )
