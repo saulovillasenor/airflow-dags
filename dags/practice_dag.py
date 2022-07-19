@@ -65,4 +65,4 @@ with DAG(
     
     end_workflow = DummyOperator(task_id="end_workflow")
     
-    start_workflow >> validate >> prepare >> load >> end_workflow
+    start_workflow >> validate >> create_table_entity >> load >> end_workflow
