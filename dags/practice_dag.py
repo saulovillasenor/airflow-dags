@@ -16,7 +16,7 @@ from airflow.utils.dates import days_ago
 from airflow.utils.trigger_rule import TriggerRule
 
 # General constants
-DAG_ID = "gcs_to_postres_ingestion_workflow"
+DAG_ID = "gcs_to_postgres_ingestion_workflow"
 STABILITY_STATE = "unstable"
 CLOUD_PROVIDER = "gcp"
 
@@ -27,7 +27,7 @@ GCS_KEY_NAME = "user_purchase.csv"
 
 # Postgres constants
 POSTGRES_CONN_ID = "ml_conn"
-POSTGRES_TABLE_NAME = "monthly_charts_data"
+POSTGRES_TABLE_NAME = "user_purchase"
 
 
 def ingest_data_from_gcs(
@@ -76,7 +76,7 @@ with DAG(
         task_id="create_table_entity",
         postgres_conn_id=POSTGRES_CONN_ID,
         sql=f"""
-            CREATE TABLE IF NOT EXISTS {POSTGRES_TABLE_NAME} (
+            CREATE TABLE IF NOT EXISTS user_purchase (
                 month VARCHAR(10),
                 position INTEGER,
                 artist VARCHAR(100),
@@ -95,7 +95,7 @@ with DAG(
     clear_table = PostgresOperator(
         task_id="clear_table",
         postgres_conn_id=POSTGRES_CONN_ID,
-        sql=f"DELETE FROM {POSTGRES_TABLE_NAME}",
+        sql=f"DELETE FROM user_purchase",
     )
     continue_process = DummyOperator(task_id="continue_process")
 
