@@ -205,14 +205,14 @@ to match your project ID.
     ***Fix:*** You might've skipped the `gcloud auth application-default login` command to authorize access.
 
 
-5. Failed apache-airflow installation.
+5. Failed apache-airflow installation (This also works to restar your airflow YAML file and your servers).
     > Error: INSTALLATION FAILED: failed to download "apache-airflow/airflow"
    
     This error can occur do to the `helm install airflow -f airflow-values.yaml apache-airflow/airflow --namespace airflow`
     command. ***Fix:***
     ```bash
     kubectl delete namespace airflow
-    helm repo remove apache-airflow https://airflow.apache.org
+    helm repo remove apache-airflow https://airflow.apache.org #this might not be necessary
     kubectl create namespace airflow
     helm repo add apache-airflow https://airflow.apache.org
     helm upgrade --install airflow -f airflow-values.yaml apache-airflow/airflow --namespace airflow
