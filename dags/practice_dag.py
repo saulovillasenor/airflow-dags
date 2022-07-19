@@ -27,6 +27,7 @@ GCS_KEY_NAME = "user_purchase.csv"
 
 # Postgres constants
 POSTGRES_CONN_ID = "ml_conn"
+POSTGRES_TABLE_NAME = "capstone_project.user_purchase"
 
 
 with DAG(
@@ -46,7 +47,7 @@ with DAG(
         postgres_conn_id=POSTGRES_CONN_ID,
         sql=f"""
             CREATE SCHEMA IF NOT EXISTS capstone_project;
-            CREATE TABLE IF NOT EXISTS capstone_project.user_purchase (
+            CREATE TABLE IF NOT EXISTS {POSTGRES_TABLE_NAME} (
                 invoice_number varchar(10),
                 stock_code varchar(20),
                 detail varchar(1000),
