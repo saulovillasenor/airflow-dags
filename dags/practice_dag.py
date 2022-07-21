@@ -88,7 +88,7 @@ with DAG(
         object="log_reviews.csv",
     )
     
-     verify_key_existence_4 = GCSObjectExistenceSensor(
+    verify_key_existence_4 = GCSObjectExistenceSensor(
         task_id="verify_key_existence_4",
         google_cloud_conn_id=GCP_CONN_ID,
         bucket=GCS_BUCKET_NAME,
