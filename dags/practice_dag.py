@@ -68,21 +68,21 @@ with DAG(
     start_workflow = DummyOperator(task_id="start_workflow")
     
     verify_key_existence_1 = GCSObjectExistenceSensor(
-        task_id="verify_key_existence",
+        task_id="verify_key_existence_1",
         google_cloud_conn_id=GCP_CONN_ID,
         bucket=GCS_BUCKET_NAME,
         object="user_purchase.csv",
     )    
     
     verify_key_existence_2 = GCSObjectExistenceSensor(
-        task_id="verify_key_existence",
+        task_id="verify_key_existence_2",
         google_cloud_conn_id=GCP_CONN_ID,
         bucket=GCS_BUCKET_NAME,
         object="movie_review.csv",
     )
     
     verify_key_existence_3 = GCSObjectExistenceSensor(
-        task_id="verify_key_existence",
+        task_id="verify_key_existence_3",
         google_cloud_conn_id=GCP_CONN_ID,
         bucket=GCS_BUCKET_NAME,
         object="log_reviews.csv",
@@ -92,7 +92,9 @@ with DAG(
     end_workflow = DummyOperator(task_id="end_workflow")
     
     (
-        start_workflow >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3] >> end_workflow
+        start_workflow 
+        >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3] 
+        >> end_workflow
     )
 
     dag.doc_md = __doc__
