@@ -29,34 +29,16 @@ POSTGRES_CONN_ID = "ml_conn"
 POSTGRES_TABLE_NAME = "capstone_project.user_purchase"
 
 
-def ingest_data_from_gcs(
-    gcs_bucket: str,
-    gcs_object: str,
-    postgres_table: str,
-    gcp_conn_id: str = "google_cloud_default",
-    postgres_conn_id: str = "postgres_default",
-):
-    """Ingest data from an GCS location into a postgres table.
-    
-    Args:
-        gcs_bucket (str): Name of the bucket.
-        gcs_object (str): Name of the object.
-        postgres_table (str): Name of the postgres table.
-        gcp_conn_id (str): Name of the Google Cloud connection ID.
-        postgres_conn_id (str): Name of the postgres connection ID.
+def read_data_from_gcs():
+    """read data from an GCS bucket.
     """
-    import tempfile
-
-    gcs_hook = GCSHook(gcp_conn_id=gcp_conn_id)
-    psql_hook = PostgresHook(postgres_conn_id)
-
-    with tempfile.NamedTemporaryFile() as tmp:
-        gcs_hook.download(
-            bucket_name=gcs_bucket, object_name=gcs_object, filename=tmp.name
-        )
-        psql_hook.bulk_load(table=postgres_table, tmp_file=tmp.name)
-
-
+    gcs_hook = GCSHook(gcp_conn_id=GCP_CONN_ID)
+    file = gcs_hook.download(bucket_name=GCS_BUCKET_NAME,
+                             object_name="movie_review.csv",
+    )
+    
+    df = pd.read_csv(file)
+    print(df.head())
 
 with DAG(
     dag_id=DAG_ID,
@@ -88,12 +70,17 @@ with DAG(
         object="log_reviews.csv",
     )
     
+    read_data = PythonOperator(
+        task_id="read_data",
+        python_callable=read_data_from_gcs,
+    )
+    
     end_workflow = DummyOperator(task_id="end_workflow")
     
     (
         start_workflow 
         >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3] 
-        >> end_workflow
+        >> read_data >> end_workflow
     )
 
     dag.doc_md = __doc__
