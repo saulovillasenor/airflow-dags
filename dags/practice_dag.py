@@ -120,7 +120,7 @@ with DAG(
     
     end_workflow = DummyOperator(task_id="end_workflow")
     
-     (
+    (
         start_workflow
         >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3]
         >> create_table_entity
