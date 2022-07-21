@@ -15,6 +15,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.utils.dates import days_ago
 from airflow.utils.trigger_rule import TriggerRule
 import pandas as pd
+import io
 
 # General constants
 DAG_ID = "gcs_to_postgres_ingestion_workflow"
