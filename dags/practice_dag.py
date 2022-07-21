@@ -40,7 +40,8 @@ def ingest_data_from_gcs():
                              object_name="user_purchase.csv",
     )
     df = pd.read_csv(io.StringIO(file.decode('utf-8')))
-    psql_hook.bulk_load(table=POSTGRES_TABLE_NAME, tmp_file=df.to_csv('user_purchase.csv', sep='\t', na_rep=r'\N', header=False, index=False))  
+    df.to_csv('user_purchase.csv', sep='\t', na_rep=r'\N', header=False, index=False)
+    psql_hook.bulk_load(table=POSTGRES_TABLE_NAME, tmp_file='user_purchase.csv')
         
 with DAG(
     dag_id=DAG_ID,
