@@ -29,16 +29,17 @@ GCS_BUCKET_NAME = "wizeline-project-bucket"
 POSTGRES_CONN_ID = "ml_conn"
 POSTGRES_TABLE_NAME = "capstone_project.user_purchase"
 
-
 def read_data_from_gcs():
     """read data from an GCS bucket.
     """
     gcs_hook = GCSHook(gcp_conn_id=GCP_CONN_ID)
-    file = gcs_hook.download(bucket_name=GCS_BUCKET_NAME,
-                             object_name="user_purchase.csv",
-    )
-    df = pd.read_csv("gs://wizeline-project-bucket/user_purchase.csv")
-    print(df.head())
+
+    with tempfile.NamedTemporaryFile() as tmp:
+        gcs_hook.download(
+            bucket_name=GCS_BUCKET_NAME, object_name="user_purchase.csv", filename=tmp.name
+        )
+        df = pd.read_csv(filename)
+    print(df.head()) 
 
 with DAG(
     dag_id=DAG_ID,
