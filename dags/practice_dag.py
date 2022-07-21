@@ -88,19 +88,11 @@ with DAG(
         object="log_reviews.csv",
     )
     
-    verify_key_existence_4 = GCSObjectExistenceSensor(
-        task_id="verify_key_existence_4",
-        google_cloud_conn_id=GCP_CONN_ID,
-        bucket=GCS_BUCKET_NAME,
-        object="test.csv",
-    )
-    
-    
     end_workflow = DummyOperator(task_id="end_workflow")
     
     (
         start_workflow 
-        >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3, verify_key_existence_4] 
+        >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3] 
         >> end_workflow
     )
 
