@@ -23,7 +23,6 @@ CLOUD_PROVIDER = "gcp"
 # GCP constants
 GCP_CONN_ID = "google_cloud_default"
 GCS_BUCKET_NAME = "wizeline-project-bucket"
-GCS_KEY_NAME = "user_purchase.csv"
 
 # Postgres constants
 POSTGRES_CONN_ID = "ml_conn"
@@ -65,72 +64,37 @@ with DAG(
     start_date=days_ago(1),
     tags=[CLOUD_PROVIDER, STABILITY_STATE],
 ) as dag:
+    
     start_workflow = DummyOperator(task_id="start_workflow")
     
-    verify_key_existence = GCSObjectExistenceSensor(
+    verify_key_existence_1 = GCSObjectExistenceSensor(
         task_id="verify_key_existence",
         google_cloud_conn_id=GCP_CONN_ID,
         bucket=GCS_BUCKET_NAME,
-        object=GCS_KEY_NAME,
+        object="user_purchase.csv",
     )    
     
-    
-    create_table_entity = PostgresOperator(
-        task_id="create_table_entity",
-        postgres_conn_id=POSTGRES_CONN_ID,
-        sql=f"""
-            CREATE SCHEMA IF NOT EXISTS capstone_project;
-            CREATE TABLE IF NOT EXISTS {POSTGRES_TABLE_NAME} (
-                invoice_number varchar(10),
-                stock_code varchar(20),
-                detail varchar(1000),
-                quantity int,
-                invoice_date timestamp,
-                unit_price numeric(8,3),
-                customer_id int,
-                country varchar(20)
-            )
-        """,
+    verify_key_existence_2 = GCSObjectExistenceSensor(
+        task_id="verify_key_existence",
+        google_cloud_conn_id=GCP_CONN_ID,
+        bucket=GCS_BUCKET_NAME,
+        object="movie_review.csv",
     )
     
-    
-    clear_table = PostgresOperator(
-        task_id="clear_table",
-        postgres_conn_id=POSTGRES_CONN_ID,
-        sql=f"DELETE FROM {POSTGRES_TABLE_NAME}",
-    )
-    continue_process = DummyOperator(task_id="continue_process")
-    
-    ingest_data = PythonOperator(
-        task_id="ingest_data",
-        python_callable=ingest_data_from_gcs,
-        op_kwargs={
-            "gcp_conn_id": GCP_CONN_ID,
-            "postgres_conn_id": POSTGRES_CONN_ID,
-            "gcs_bucket": GCS_BUCKET_NAME,
-            "gcs_object": GCS_KEY_NAME,
-            "postgres_table": POSTGRES_TABLE_NAME,
-        },
-        trigger_rule=TriggerRule.ONE_SUCCESS,
+    verify_key_existence_3 = GCSObjectExistenceSensor(
+        task_id="verify_key_existence",
+        google_cloud_conn_id=GCP_CONN_ID,
+        bucket=GCS_BUCKET_NAME,
+        object="log_reviews.csv",
     )
     
-    validate_data = BranchSQLOperator(
-        task_id="validate_data",
-        conn_id=POSTGRES_CONN_ID,
-        sql=f"SELECT COUNT(*) AS total_rows FROM {POSTGRES_TABLE_NAME}",
-        follow_task_ids_if_false=[continue_process.task_id],
-        follow_task_ids_if_true=[clear_table.task_id],
-    )
     
     end_workflow = DummyOperator(task_id="end_workflow")
     
     (
         start_workflow
-        >> verify_key_existence
-        >> create_table_entity
-        >> validate_data
+        >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3]
+        >> end_workflow
     )
-    validate_data >> [clear_table, continue_process] >> ingest_data
-    ingest_data >> end_workflow
 
     dag.doc_md = __doc__
