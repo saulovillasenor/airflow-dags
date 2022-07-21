@@ -39,8 +39,28 @@ def ingest_data_from_gcs():
     file = gcs_hook.download(bucket_name=GCS_BUCKET_NAME,
                              object_name="user_purchase.csv",
     )
+    
+    #reading and checking the file
     df = pd.read_csv(io.StringIO(file.decode('utf-8')))
+    print(df.info(), '\n\n') 
+    print(df.head(), '\n\n') 
+    print(f'The shape of the df is: {df.shape}', '\n\n')
+
+    #transforming data into a readable format for Postgres
+    df['CustomerID'] = df['CustomerID'].fillna(0.0).astype(int)
+    df['CustomerID'] = df['CustomerID'].replace(to_replace =0, value =r'\N')
+    df['Description'] = df['Description'].str.replace(',','')
+    
+    #reading and checking the file again
+    print('A total of ', len(df[df['CustomerID'] == r'\N']), ' values were filled in the CustomerID table \n\n')
+    print(df.info(), '\n\n') 
+    print(df.head(), '\n\n') 
+    print(f'The shape of the df is: {df.shape}')
+    
+    #saving the file
     df.to_csv('user_purchase.csv', sep='\t', na_rep=r'\N', header=False, index=False)
+    
+    #loading the file to Postgres
     psql_hook.bulk_load(table=POSTGRES_TABLE_NAME, tmp_file='user_purchase.csv')
         
 with DAG(
