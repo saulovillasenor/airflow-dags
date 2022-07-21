@@ -33,13 +33,11 @@ def read_data_from_gcs():
     """read data from an GCS bucket.
     """
     gcs_hook = GCSHook(gcp_conn_id=GCP_CONN_ID)
-
-    with tempfile.NamedTemporaryFile() as tmp:
-        gcs_hook.download(
-            bucket_name=GCS_BUCKET_NAME, object_name="user_purchase.csv", filename=tmp.name
-        )
-        df = pd.read_csv(filename)
-    print(df.head()) 
+    file = gcs_hook.download(bucket_name=GCS_BUCKET_NAME,
+                             object_name="user_purchase.csv",
+    )
+    df = pd.read_csv(io.StringIO(file.decode('utf-8')))
+    print(df.head())
 
 with DAG(
     dag_id=DAG_ID,
