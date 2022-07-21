@@ -100,13 +100,6 @@ with DAG(
     ingest_data = PythonOperator(
         task_id="ingest_data",
         python_callable=ingest_data_from_gcs,
-        op_kwargs={
-            "gcp_conn_id": GCP_CONN_ID,
-            "postgres_conn_id": POSTGRES_CONN_ID,
-            "gcs_bucket": GCS_BUCKET_NAME,
-            "gcs_object": "user_purchase.csv",
-            "postgres_table": POSTGRES_TABLE_NAME,
-        },
         trigger_rule=TriggerRule.ONE_SUCCESS,
     )
     
