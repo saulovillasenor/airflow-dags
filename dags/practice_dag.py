@@ -35,10 +35,9 @@ def read_data_from_gcs():
     """
     gcs_hook = GCSHook(gcp_conn_id=GCP_CONN_ID)
     file = gcs_hook.download(bucket_name=GCS_BUCKET_NAME,
-                             object_name="movie_review.csv",
+                             object_name="user_purchase.csv",
     )
-    
-    df = pd.read_csv(file)
+    df = pd.read_csv("gs://wizeline-project-bucket/user_purchase.csv")
     print(df.head())
 
 with DAG(
