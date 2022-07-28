@@ -25,6 +25,7 @@ CLOUD_PROVIDER = "gcp"
 # GCP constants
 GCP_CONN_ID = "google_cloud_default"
 GCS_BUCKET_NAME = "wizeline-project-bucket"
+GCS_KEY_NAME = "user_purchase.csv"
 
 # Postgres constants
 POSTGRES_CONN_ID = "ml_conn"
@@ -37,7 +38,7 @@ def ingest_data_from_gcs():
     psql_hook = PostgresHook(postgres_conn_id=POSTGRES_CONN_ID)
     
     file = gcs_hook.download(bucket_name=GCS_BUCKET_NAME,
-                             object_name="user_purchase.csv",
+                             object_name=GCS_KEY_NAME,
     )
     
     #reading and checking the file
@@ -72,26 +73,12 @@ with DAG(
     
     start_workflow = DummyOperator(task_id="start_workflow")
     
-    verify_key_existence_1 = GCSObjectExistenceSensor(
-        task_id="verify_key_existence_1",
+    verify_key_existence = GCSObjectExistenceSensor(
+        task_id="verify_key_existence",
         google_cloud_conn_id=GCP_CONN_ID,
         bucket=GCS_BUCKET_NAME,
-        object="user_purchase.csv",
+        object=GCS_KEY_NAME,
     )    
-    
-    verify_key_existence_2 = GCSObjectExistenceSensor(
-        task_id="verify_key_existence_2",
-        google_cloud_conn_id=GCP_CONN_ID,
-        bucket=GCS_BUCKET_NAME,
-        object="movie_review.csv",
-    )
-    
-    verify_key_existence_3 = GCSObjectExistenceSensor(
-        task_id="verify_key_existence_3",
-        google_cloud_conn_id=GCP_CONN_ID,
-        bucket=GCS_BUCKET_NAME,
-        object="log_reviews.csv",
-    )
     
     create_table_entity = PostgresOperator(
         task_id="create_table_entity",
@@ -136,7 +123,7 @@ with DAG(
     
     (
         start_workflow
-        >> [verify_key_existence_1, verify_key_existence_2, verify_key_existence_3]
+        >> verify_key_existence
         >> create_table_entity
         >> validate_data
     )
